@@ -67,4 +67,26 @@ router.put('/:id', (req, res) => {
 	}
 })
 
+router.delete('/:id', (req, res, next) => {
+	Projects.get(req.params.id)
+		.then(project => {
+			if (!project) {
+				res.status(404).json('Project could not be found')
+				next()
+			} else {
+				Projects.remove(project.id)
+					.then(count => {
+						res.status(200)
+						console.log(count, "count")
+						next()
+					})
+					.catch(err => {
+						console.log(err)
+						next()
+					})
+
+			}
+		})
+		.catch(err => console.log(err))
+})
 module.exports = router
