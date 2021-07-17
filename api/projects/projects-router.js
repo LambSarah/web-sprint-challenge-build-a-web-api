@@ -34,4 +34,21 @@ router.get('/:id', (req, res) => {
 		})
 })
 
+router.post('/', (req, res) => {
+	!req.body.name || !req.body.description ? res.status(400).json({ message: 'Project name and body are required' })
+		: Projects.insert(req.body)
+			.then((newProject) => {
+				if (newProject) {
+					Projects.get(newProject.id)
+						.then((anotherNewProject) => {
+							res.status(201).json(anotherNewProject)
+						})
+				}
+			})
+			.catch(err => {
+				console.log(err)
+				res.status(500).json({ message: 'Error adding project' })
+			})
+})
+
 module.exports = router
