@@ -51,4 +51,20 @@ router.post('/', (req, res) => {
 			})
 })
 
+router.put('/:id', (req, res) => {
+	const changes = req.body
+	if (!changes.name || !changes.description) {
+		res.status(400).json({ message: 'Please provide name and description for project' })
+
+	} else {
+		Projects.update(req.params.id, changes)
+			.then(project => {
+				res.status(200).json(project)
+			})
+			.catch(err => {
+				console.log(err)
+			})
+	}
+})
+
 module.exports = router
