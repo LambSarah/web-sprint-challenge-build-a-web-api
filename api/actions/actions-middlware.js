@@ -22,13 +22,28 @@ const checkProjectId = async (req, res, next) => {
 
 const checkActionsPayload = async (req, res, next) => {
 	try {
-		if (!req.body.project_id || req.body.description || req.body.notes) {
-			next({
-				status: 400,
-				message: 'Project id, description, and notes are required'
-			})
-		} else {
-			next()
+		const changes = req.body
+		console.log(req.method, '  req method')
+		if (req.method.toLowerCase() === 'post') {
+			if (!changes.project_id || !changes.description || !changes.notes) {
+				next({
+					status: 400,
+					message: 'Project id, description, and notes are required'
+				})
+			} else {
+				next()
+			}
+		} else if (req.method.toLowerCase() === 'put') {
+			if (changes.project_id || changes.description || changes.notes) {
+				if (changes.completed === true || changes.completed === false) {
+					next()
+				}
+			} else {
+				next({
+					status: 400,
+					message: 'Project id, description, notes, and completed status are required'
+				})
+			}
 		}
 	}
 	catch (err) {

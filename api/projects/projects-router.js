@@ -2,11 +2,11 @@
 const express = require('express')
 
 const Projects = require('./projects-model')
-//const Middleware = require('./projects-middleware')
+const { logger, checkProjectsPayload } = require('./projects-middleware')
 const router = express.Router()
 
 router.use(express.json())
-
+router.use(logger)
 
 // GET all projects
 router.get('/', (req, res) => {
@@ -39,39 +39,36 @@ router.get('/:id', (req, res) => {
 
 
 // POST insert a new project
-router.post('/', (req, res) => {
-	!req.body.name || !req.body.description ? res.status(400).json({ message: 'Project name and body are required' })
-		: Projects.insert(req.body)
-			.then((newProject) => {
-				if (newProject) {
-					Projects.get(newProject.id)
-						.then((anotherNewProject) => {
-							res.status(201).json(anotherNewProject)
-						})
-				}
-			})
-			.catch(err => {
-				console.log(err)
-				res.status(500).json({ message: 'Error adding project' })
-			})
+router.post('/', checkProjectsPayload, (req, res) => {
+	Projects.insert(req.body)
+		.then((newProject) => {
+			if (newProject) {
+				Projects.get(newProject.id)
+					.then((anotherNewProject) => {
+						res.status(201).json(anotherNewProject)
+					})
+			}
+		})
+		.catch(err => {
+			console.log(err)
+			res.status(500).json({ message: 'Error adding project' })
+		})
 })
 
 
 // PUT update a particular project
-router.put('/:id', (req, res) => {
+router.put('/:id', checkProjectsPayload, (req, res, next) => {
 	const changes = req.body
-	if (!changes.name || !changes.description) {
-		res.status(400).json({ message: 'Please provide name and description for project' })
+	Projects.update(req.params.id, changes)
+		.then(project => {
+			console.log(project, '____this is whats returned')
+			res.status(200).json(project)
 
-	} else {
-		Projects.update(req.params.id, changes)
-			.then(project => {
-				res.status(200).json(project)
-			})
-			.catch(err => {
-				console.log(err)
-			})
-	}
+		})
+		.catch(err => {
+			console.log(err)
+			next(err)
+		})
 })
 
 // DELETE a particular project
@@ -92,7 +89,6 @@ router.delete('/:id', (req, res, next) => {
 						console.log(err)
 						next()
 					})
-
 			}
 		})
 		.catch(err => console.log(err))

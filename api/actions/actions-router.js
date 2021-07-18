@@ -2,7 +2,7 @@
 const express = require('express')
 
 const Actions = require('./actions-model')
-const { checkProjectId,/* checkActionsPayload */ } = require('./actions-middlware.js')
+const { checkProjectId, checkActionsPayload } = require('./actions-middlware.js')
 
 const router = express.Router()
 
@@ -40,29 +40,38 @@ router.get('/:id', (req, res) => {
 Returns the newly created action as the body of the response.
 If the request body is missing any of the required fields it responds with a status code 400.
 When adding an action make sure the project_id provided belongs to an existing project.*/
-router.post('/', checkProjectId, async (req, res, next) => {
-	if (req.body.project_id && req.body.description && req.body.notes) {
-		Actions.insert(req.body)
-			.then(action => {
-				action ? Actions.get(action.id)
-					.then(newAction => {
-						res.status(200).json(newAction)
-					})
-					: err => {
-						next(err)
-					}
+router.post('/', checkActionsPayload, checkProjectId, async (req, res, next) => {
+	Actions.insert(req.body)
+		.then(action => {
+			action ? Actions.get(action.id)
+				.then(newAction => {
+					res.status(200).json(newAction)
+				})
+				: err => {
+					next(err)
+				}
 
-			})
-
-	} else {
-		res.status(400).json({ message: 'Project_id, name and description required.' })
-	}
+		})
 })
+
 /*[PUT] /api/actions/:id
 Returns the updated action as the body of the response.
 If there is no action with the given id it responds with a status code 404.
-If the request body is missing any of the required fields it responds with a status code 400.
- [DELETE] /api/actions/:id
+If the request body is missing any of the required fields it responds with a status code 400.*/
+router.put('/:id', checkActionsPayload, checkProjectId, (req, res, next) => {
+	const changes = req.body
+	Actions.update(req.params.id, changes)
+		.then(action => {
+			console.log(action, '_____this is what is returned')
+			res.status(200).json(action)
+		})
+		.catch(err => {
+			console.log(err)
+			next(err)
+		})
+})
+
+/* [DELETE] /api/actions/:id
 Returns no response body.
 If there is no action with the given id it responds with a status code 404.
 */
