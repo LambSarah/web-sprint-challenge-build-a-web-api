@@ -2,11 +2,13 @@
 const express = require('express')
 
 const Projects = require('./projects-model')
-
+//const Middleware = require('./projects-middleware')
 const router = express.Router()
 
 router.use(express.json())
 
+
+// GET all projects
 router.get('/', (req, res) => {
 	Projects.get()
 		.then(projects => {
@@ -24,6 +26,7 @@ router.get('/', (req, res) => {
 		})
 })
 
+// GET a particular project by id 
 router.get('/:id', (req, res) => {
 	Projects.get(req.params.id)
 		.then(project => {
@@ -34,6 +37,8 @@ router.get('/:id', (req, res) => {
 		})
 })
 
+
+// POST insert a new project
 router.post('/', (req, res) => {
 	!req.body.name || !req.body.description ? res.status(400).json({ message: 'Project name and body are required' })
 		: Projects.insert(req.body)
@@ -51,6 +56,8 @@ router.post('/', (req, res) => {
 			})
 })
 
+
+// PUT update a particular project
 router.put('/:id', (req, res) => {
 	const changes = req.body
 	if (!changes.name || !changes.description) {
@@ -67,6 +74,7 @@ router.put('/:id', (req, res) => {
 	}
 })
 
+// DELETE a particular project
 router.delete('/:id', (req, res, next) => {
 	Projects.get(req.params.id)
 		.then(project => {
@@ -90,7 +98,7 @@ router.delete('/:id', (req, res, next) => {
 		.catch(err => console.log(err))
 })
 
-
+// GET actions associated with a particular project
 router.get('/:id/actions', async (req, res) => {
 	try {
 		const { id } = req.params
@@ -103,4 +111,6 @@ router.get('/:id/actions', async (req, res) => {
 		console.log(err)
 	}
 })
+
+
 module.exports = router
