@@ -73,7 +73,27 @@ router.put('/:id', checkActionsPayload, checkProjectId, (req, res, next) => {
 
 /* [DELETE] /api/actions/:id
 Returns no response body.
-If there is no action with the given id it responds with a status code 404.
-*/
+If there is no action with the given id it responds with a status code 404.*/
+
+router.delete('/:id', (req, res, next) => {
+	Actions.get(req.params.id)
+		.then(actionToDelete => {
+			if (!actionToDelete) {
+				res.status(404).json({ message: "The action with specified ID does not exist" })
+				next()
+			} else {
+				Actions.remove(actionToDelete.id)
+					.then(() => {
+						res.status(200)
+						next()
+					})
+					.catch(err => {
+						next(err)
+					})
+			}
+		}).catch(err => {
+			next(err)
+		})
+})
 
 module.exports = router
