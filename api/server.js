@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
-const { logger } = require('./projects/projects-middleware')
+const { logger, notFound, errorHandling } = require('./middleware')
+
 const projectsRouter = require('./projects/projects-router')
 const actionsRouter = require('./actions/actions-router')
 
@@ -20,4 +21,8 @@ server.get('/', logger, (req, res, next) => {
 	res.send(`LambdaProjects API`)
 	next()
 })
+
+server.use('*', notFound)
+
+server.use(errorHandling)
 module.exports = server;

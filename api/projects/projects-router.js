@@ -2,14 +2,13 @@
 const express = require('express')
 
 const Projects = require('./projects-model')
-const { logger, checkProjectsPayload } = require('./projects-middleware')
+const { checkProjectsPayload } = require('./projects-middleware')
 const router = express.Router()
 
 router.use(express.json())
-router.use(logger)
 
 // GET all projects
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
 	Projects.get()
 		.then(projects => {
 			if (projects) {
@@ -22,24 +21,26 @@ router.get('/', (req, res) => {
 			}
 		})
 		.catch(err => {
-			console.log(err)
+			next(err)
 		})
 })
 
 // GET a particular project by id 
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
 	Projects.get(req.params.id)
 		.then(project => {
-			project ? res.status(200).json(project) : res.status(404).json({ message: 'Project not found.' })
+			project ? res.status(200).json(project)
+				:
+				res.status(404).json({ message: 'Project not found.' })
 		})
 		.catch(err => {
-			console.log(err)
+			next(err)
 		})
 })
 
 
 // POST insert a new project
-router.post('/', checkProjectsPayload, (req, res) => {
+router.post('/', checkProjectsPayload, (req, res, next) => {
 	Projects.insert(req.body)
 		.then((newProject) => {
 			if (newProject) {
@@ -50,8 +51,7 @@ router.post('/', checkProjectsPayload, (req, res) => {
 			}
 		})
 		.catch(err => {
-			console.log(err)
-			res.status(500).json({ message: 'Error adding project' })
+			next(err)
 		})
 })
 
@@ -66,7 +66,6 @@ router.put('/:id', checkProjectsPayload, (req, res, next) => {
 
 		})
 		.catch(err => {
-			console.log(err)
 			next(err)
 		})
 })
@@ -86,16 +85,15 @@ router.delete('/:id', (req, res, next) => {
 						next()
 					})
 					.catch(err => {
-						console.log(err)
-						next()
+						next(err)
 					})
 			}
 		})
-		.catch(err => console.log(err))
+		.catch(err => next(err))
 })
 
 // GET actions associated with a particular project
-router.get('/:id/actions', async (req, res) => {
+router.get('/:id/actions', async (req, res, next) => {
 	try {
 		const { id } = req.params
 		const actions = await Projects.getProjectActions(id)
@@ -104,7 +102,7 @@ router.get('/:id/actions', async (req, res) => {
 			res.status(200).json([])
 
 	} catch (err) {
-		console.log(err)
+		next(err)
 	}
 })
 
